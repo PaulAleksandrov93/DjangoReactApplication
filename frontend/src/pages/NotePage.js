@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ReactComponent as ArrowLeft } from '../assets/arrow-left.svg'
 
-const NotePage = () => {
+const NotePage = ({ history }) => { 
     const { id } = useParams();
 
     const getNote = useCallback(async () => {
@@ -17,16 +17,29 @@ const NotePage = () => {
         getNote();
     }, [getNote]);
 
+    let updateNote = async () => {
+        fetch(`/api/notes/${id}/update/`, {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(note)
+        })
+    }
+
+    let handleSubmit = () => {
+        updateNote()
+        window.history.pushState('/') 
+    }    
+
     return (
         <div className='note'>
             <div className='note-header'>
-                <h3>
-                    <Link to="/">
-                        <ArrowLeft />
-                    </Link>
+                <h3>                    
+                    <ArrowLeft onClick={handleSubmit} />
                 </h3>
             </div>
-            <textarea defaultValue={note?.body}></textarea>
+            <textarea onChange={(e) => {setNote({...note, 'body': e.target.value })}} defaultValue={note?.body}></textarea>
         </div>
     );
 };
