@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ReactComponent as ArrowLeft } from '../assets/arrow-left.svg'
 
-const NotePage = ({ history }) => { 
+const NotePage = () => { 
     const { id } = useParams();
+    const navigate = useNavigate();
 
     const getNote = useCallback(async () => {
+        if (id === 'new') return
         let response = await fetch(`/api/notes/${id}/`);
         let data = await response.json();
         setNote(data);
@@ -17,6 +19,16 @@ const NotePage = ({ history }) => {
         getNote();
     }, [getNote]);
 
+    let createNote = async () => {
+        fetch(`/api/notes/create/`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(note)
+        })
+    }
+
     let updateNote = async () => {
         fetch(`/api/notes/${id}/update/`, {
             method: "PUT",
@@ -27,9 +39,29 @@ const NotePage = ({ history }) => {
         })
     }
 
+
+    let deleteNote = async () => {
+        fetch(`/api/notes/${id}/delete/`, {
+            method: "DELETE",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(note)
+        })
+        navigate('/') 
+    }
+
+
     let handleSubmit = () => {
-        updateNote()
-        window.history.pushState('/') 
+        if(id !== 'new' && !note.body){
+            deleteNote()
+        }else if(id !== 'new'){
+            updateNote()
+        }else if(id == 'new' && note !== null){
+            createNote()
+        }
+        
+        navigate('/') 
     }    
 
     return (
@@ -38,6 +70,12 @@ const NotePage = ({ history }) => {
                 <h3>                    
                     <ArrowLeft onClick={handleSubmit} />
                 </h3>
+                {id !== 'new' ? (
+                    <button onClick={deleteNote}>Delete</button>
+                ): (
+                    <button onClick={handleSubmit}>Done</button>
+                )}
+                
             </div>
             <textarea onChange={(e) => {setNote({...note, 'body': e.target.value })}} defaultValue={note?.body}></textarea>
         </div>
